@@ -4,7 +4,7 @@ use chrono::NaiveDate;
 #[inline]
 pub fn parse(s: &str) -> Result<NaiveDate, Error> {
     match s.get(..1) {
-        None => Err(Error::InvalidDateTime),
+        None => Err(Error::InvalidDate),
         Some(c) => {
             if c.as_bytes()[0].is_ascii_digit() {
                 parse_unknown_alpha(s)
