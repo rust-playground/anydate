@@ -27,6 +27,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         ("yymmdd hh:mm:ss", "171113 14:14:20"),
         ("chinese yyyy mm dd hh mm ss", "2014年04月08日11时25分18秒"),
         ("chinese yyyy mm dd", "2014年04月08日"),
+        ("timezone_abbrev", "2017-11-25 13:31:15 PST"),
     ]
     .iter()
     {
