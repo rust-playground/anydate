@@ -11,4 +11,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial Release
 
 [Unreleased]: https://github.com/rust-playground/anydate/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/rust-playground/anydate/commit/95a56c15d096effa95b8dcd5696358ee1c271db3
+[0.1.0]: https://github.com/rust-playground/anydate/commit/4ac9022aeeb9d2911a763651f70987cb8d98d47d
