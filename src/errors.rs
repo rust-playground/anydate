@@ -1,3 +1,4 @@
+//! Parsing Errors
 use thiserror::Error;
 
 #[derive(Error, Debug)]

@@ -1,6 +1,8 @@
+//! Date parsing functions
 use crate::errors::Error;
 use chrono::NaiveDate;
 
+/// Attempts to parse the provided string into a NaiveDate.
 #[inline]
 pub fn parse(s: &str) -> Result<NaiveDate, Error> {
     match s.get(..1) {

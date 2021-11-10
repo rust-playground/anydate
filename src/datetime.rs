@@ -1,6 +1,9 @@
+//! DateTime parsing functions
 use crate::errors::Error;
 use chrono::{DateTime, FixedOffset, NaiveDateTime, NaiveTime, Offset, TimeZone, Utc};
 
+/// Attempts to parse the provided string into a DateTime\<FixedOffset\>.
+/// Also see [`parse_utc`] for a convenience conversion to DateTime\<Utc\>.
 #[inline]
 pub fn parse(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     match s.get(..1) {
@@ -15,6 +18,8 @@ pub fn parse(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     }
 }
 
+/// Attempts to parse the provided string into a DateTime\<FixedOffset\> but convert it to a
+/// DateTime\<Utc\> prior to returning automatically.
 #[inline]
 pub fn parse_utc(s: &str) -> Result<DateTime<Utc>, Error> {
     let fdt = parse(s)?;
