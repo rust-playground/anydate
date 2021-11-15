@@ -2,27 +2,29 @@
 //!
 //! This crate is used to parse an unknown DateTime or Date format into a normalized version.
 //!
-//! ```rust
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // see parse_utc() for convenience conversion to UTC
-//!     let parsed = anydate::parse("2021-11-10T03:25:06.533447000Z")?;
-//!     println!("{:#?}", parsed);
-//!     Ok(())
-//! }
+//! Any significant changes to anydate are documented in
+//! the [`CHANGELOG.md`](https://github.com/rust-playground/anydate/blob/main/CHANGELOG.md) file.
+//!
+//! ## Usage
+//! ```toml
+//! [dependencies]
+//! anydate = "0.1"
 //! ```
 //!
-//! or if you know it's only a date with no time component
+//! ### Features
 //!
-//! ```rust
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let parsed = anydate::date::parse("2021-11-10");
-//!     println!("{:#?}", parsed);
-//!     Ok(())
-//! }
+//! Optional features:
+//!
+//! - [`serde`][]: Enable deserialize_with helper functions via serde.
+//!
+//! [`serde`]: https://github.com/serde-rs/serde
+//!
 
 pub mod date;
 pub mod datetime;
 pub mod errors;
+#[cfg(feature = "serde")]
+pub mod serde;
 
 #[doc(inline)]
 pub use datetime::{parse, parse_utc};

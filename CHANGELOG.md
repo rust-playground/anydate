@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2021-11-14
+### Added
+- Serde deserialize_with helper functions.
+- Examples directory
+
 ## [0.2.0] - 2021-11-09
 ### Changed
 - Fixed Cargo.toml categories
@@ -14,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial Release
 
-[Unreleased]: https://github.com/rust-playground/anydate/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/rust-playground/anydate/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/rust-playground/anydate/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/rust-playground/anydate/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/rust-playground/anydate/commit/4ac9022aeeb9d2911a763651f70987cb8d98d47d
