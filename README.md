@@ -7,12 +7,24 @@ This crate is used to parse an unknown DateTime or Date format into a normalized
 
 ---
 
+Any significant changes to Chrono are documented in
+the [`CHANGELOG.md`](https://github.com/rust-playground/anydate/blob/main/CHANGELOG.md) file.
+
+## Usage
 ```toml
 [dependencies]
 anydate = "0.1"
 ```
 
-## Example usages
+### Features
+
+Optional features:
+
+- [`serde`][]: Enable deserialize_with helper functions via serde.
+
+[`serde`]: https://github.com/serde-rs/serde
+
+### Example usages
 ```rust
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // see parse_utc() for convenience conversion to UTC
