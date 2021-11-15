@@ -7,7 +7,7 @@ This crate is used to parse an unknown DateTime or Date format into a normalized
 
 ---
 
-Any significant changes to Chrono are documented in
+Any significant changes to anydate are documented in
 the [`CHANGELOG.md`](https://github.com/rust-playground/anydate/blob/main/CHANGELOG.md) file.
 
 ## Usage

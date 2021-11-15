@@ -2,6 +2,10 @@
 //!
 //! This crate is used to parse an unknown DateTime or Date format into a normalized version.
 //!
+//! Any significant changes to anydate are documented in
+//! the [`CHANGELOG.md`](https://github.com/rust-playground/anydate/blob/main/CHANGELOG.md) file.
+//!
+//! ## Usage
 //! ```toml
 //! [dependencies]
 //! anydate = "0.1"
