@@ -40,7 +40,7 @@ pub mod deserialize {
     //! println!("{:?}", dt);
     //!
     //! ```
-    use super::*;
+    use super::{de, AnydateVisitor, DateTime, FixedOffset, Utc};
 
     /// deserializes to a [`DateTime<FixedOffset>`]
     ///
