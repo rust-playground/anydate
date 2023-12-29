@@ -61,8 +61,7 @@ pub mod deserialize {
     where
         D: de::Deserializer<'de>,
     {
-        Ok(d.deserialize_str(AnydateVisitor)
-            .map_or_else(|_| None, Some))
+        Ok(d.deserialize_str(AnydateVisitor).ok())
     }
 
     /// deserializes to a [`DateTime<Utc>`]
