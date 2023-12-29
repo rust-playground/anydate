@@ -27,8 +27,7 @@ jobs:
 
       - name: Lint
         uses: dtolnay/rust-toolchain@clippy
-        with:
-          args: --all-features --all-targets
+        run: cargo clippy --all-features --all-targets
 
       - name: Test
         run: cargo test --all-features
