@@ -25,8 +25,10 @@ jobs:
         with:
           key: ${{ matrix.platform }}-v2
 
-      - name: Lint
+      - name: Clippy Install
         uses: dtolnay/rust-toolchain@clippy
+
+      - name: Lint
         run: cargo clippy --all-features --all-targets
 
       - name: Test
