@@ -102,8 +102,9 @@ mod tests {
             assert_eq!(
                 *expected,
                 parse(input)?
-                    .and_time(NaiveTime::from_num_seconds_from_midnight(0, 0))
-                    .timestamp_nanos()
+                    .and_time(NaiveTime::from_num_seconds_from_midnight_opt(0, 0).unwrap())
+                    .timestamp_nanos_opt()
+                    .unwrap()
             );
         }
         Ok(())

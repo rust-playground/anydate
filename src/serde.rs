@@ -98,7 +98,7 @@ pub mod deserialize {
                 ),
             ] {
                 let s: Test = serde_json::from_value(input)?;
-                assert_eq!(s.dt.timestamp_nanos(), expected);
+                assert_eq!(s.dt.timestamp_nanos_opt().unwrap(), expected);
             }
             Ok(())
         }
@@ -126,7 +126,7 @@ pub mod deserialize {
                 let s: Test = serde_json::from_value(input)?;
                 match expected {
                     Some(num) => {
-                        assert_eq!(s.dt.unwrap().timestamp_nanos(), num);
+                        assert_eq!(s.dt.unwrap().timestamp_nanos_opt().unwrap(), num);
                     }
                     None => {
                         assert_eq!(s.dt, None);
@@ -152,7 +152,7 @@ pub mod deserialize {
                 ),
             ] {
                 let s: Test = serde_json::from_value(input)?;
-                assert_eq!(s.dt.timestamp_nanos(), expected);
+                assert_eq!(s.dt.timestamp_nanos_opt().unwrap(), expected);
             }
             Ok(())
         }
@@ -180,7 +180,7 @@ pub mod deserialize {
                 let s: Test = serde_json::from_value(input)?;
                 match expected {
                     Some(num) => {
-                        assert_eq!(s.dt.unwrap().timestamp_nanos(), num);
+                        assert_eq!(s.dt.unwrap().timestamp_nanos_opt().unwrap(), num);
                     }
                     None => {
                         assert_eq!(s.dt, None);
