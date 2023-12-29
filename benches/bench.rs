@@ -16,6 +16,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         ("yyyy-mm-dd", "2021-02-21"),
         ("yyyy-mon-dd", "2021-Feb-21"),
         ("Mon dd, yyyy, hh:mm:ss", "May 8, 2009 5:57:51 PM"),
+        ("Sunday, April 18th, 2021", "Sunday, April 18th, 2021"),
         ("dd Mon yyyy hh:mm:ss", "14 May 2019 19:11:40.164"),
         ("dd Mon yyyy", "03 February 2013"),
         ("mm/dd/yyyy hh:mm:ss", "8/8/1965 01:00:01 PM"),

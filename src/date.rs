@@ -22,7 +22,7 @@ pub(crate) fn parse_unknown_alpha(s: &str) -> Result<NaiveDate, Error> {
 }
 
 pub(crate) fn parse_with_alpha(s: &str) -> Result<NaiveDate, Error> {
-    parse_naive_dates_replace_commas(s)
+    parse_naive_dates_replace(s)
 }
 
 fn parse_naive_dates(s: &str) -> Result<NaiveDate, Error> {
@@ -47,10 +47,13 @@ fn parse_naive_dates(s: &str) -> Result<NaiveDate, Error> {
         .map_or_else(|| Err(Error::InvalidDate), Ok)
 }
 
-fn parse_naive_dates_replace_commas(s: &str) -> Result<NaiveDate, Error> {
+fn parse_naive_dates_replace(s: &str) -> Result<NaiveDate, Error> {
     // Date parse formats
-    const PARSE_FORMATS: &[&str] = &["%B %d %y", "%B %d %Y"];
-    let s = s.replace(", ", " ").replace(". ", " ");
+    const PARSE_FORMATS: &[&str] = &["%B %d %y", "%B %d %Y", "%A %B %e %Y"];
+    let s = s
+        .replace([',', '.'], "")
+        .replace("th", "")
+        .replace("st", "");
     PARSE_FORMATS
         .iter()
         .map(|fmt| NaiveDate::parse_from_str(&s, fmt))

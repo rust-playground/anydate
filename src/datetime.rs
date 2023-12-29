@@ -51,12 +51,11 @@ fn parse_with_alpha(s: &str) -> Result<DateTime<FixedOffset>, Error> {
         .or_else(|_| parse_utc_naive_datetime_alpha_prefix(s))
         .or_else(|_| parse_utc_naive_datetime_replace_str_prefix_alpha(s))
         .or_else(|_| {
-            let dt = crate::date::parse_with_alpha(s).map_err(|_| Error::InvalidDateTime)?;
-            let ndt = NaiveDateTime::new(
-                dt,
-                NaiveTime::from_num_seconds_from_midnight_opt(0, 0).unwrap_or_default(),
-            );
-            Ok(Utc.fix().from_utc_datetime(&ndt))
+            let dt = crate::date::parse_with_alpha(s)
+                .map_err(|_| Error::InvalidDateTime)?
+                .and_time(NaiveTime::default())
+                .and_utc();
+            Ok(dt.fixed_offset())
         })
         .or_else(|_: Error| parse_timezone_abbreviation_prefix_alpha(s))
 }
@@ -177,7 +176,7 @@ fn parse_utc_naive_datetime_replace_str_unknown_alpha(
         "%d %B %Y %I:%M:%S %P",
         "%d %B %Y %I:%M %P",
     ];
-    let s = s.replace(", ", " ");
+    let s = s.replace(',', "");
     parse_utc_naive_datetime(&s, PARSE_FORMATS)
 }
 
@@ -191,7 +190,7 @@ fn parse_utc_naive_datetime_replace_str_prefix_alpha(
         "%B %d %Y %I:%M:%S %P",
         "%B %d %Y %I:%M %P",
     ];
-    let s = s.replace(", ", " ");
+    let s = s.replace(',', "");
     parse_utc_naive_datetime(&s, PARSE_FORMATS)
 }
 
@@ -453,6 +452,12 @@ mod tests {
             ("oct. 7, 1970", 24105600000000000),
             ("oct. 7, 70", 24105600000000000),
             ("October 7, 1970", 24105600000000000),
+            // Sunday, April 18th, 2021
+            ("Sunday, April 18th, 2021", 1618704000000000000),
+            ("Friday, January 8th, 2021", 1610064000000000000),
+            ("Tuesday, September 15th, 2020", 1600128000000000000),
+            ("Monday, April 6th, 2020", 1586131200000000000),
+            ("Friday, March 13th, 2020", 1584057600000000000),
             // dd Mon yyyy hh:mm:ss
             ("12 Feb 2006, 19:17", 1139771820000000000),
             ("12 Feb 2006 19:17", 1139771820000000000),
