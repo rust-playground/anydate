@@ -453,6 +453,9 @@ mod tests {
             ("oct. 7, 70", 24105600000000000),
             ("October 7, 1970", 24105600000000000),
             // Sunday, April 18th, 2021
+            ("Monday, January 1st, 2024", 1704067200000000000),
+            ("Tuesday, January 2nd, 2024", 1704153600000000000),
+            ("Wednesday, January 3rd, 2024", 1704240000000000000),
             ("Sunday, April 18th, 2021", 1618704000000000000),
             ("Friday, January 8th, 2021", 1610064000000000000),
             ("Tuesday, September 15th, 2020", 1600128000000000000),
