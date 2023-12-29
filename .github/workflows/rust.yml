@@ -23,7 +23,7 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.platform }}-v1
+          key: ${{ matrix.platform }}-v2
 
       - name: Lint
         uses: dtolnay/rust-toolchain@clippy
