@@ -2,7 +2,10 @@
 use crate::errors::Error;
 use chrono::NaiveDate;
 
-/// Attempts to parse the provided string into a NaiveDate.
+/// Attempts to parse the provided string into a `NaiveDate`.
+///
+/// # Errors
+/// Will return `Err` when an invalid or unsupported `Date` format is provided.
 #[inline]
 pub fn parse(s: &str) -> Result<NaiveDate, Error> {
     match s.get(..1) {
@@ -66,6 +69,7 @@ fn parse_naive_dates_replace(s: &str) -> Result<NaiveDate, Error> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unreadable_literal)]
 mod tests {
     use super::*;
     use chrono::NaiveTime;

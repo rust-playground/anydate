@@ -29,7 +29,7 @@ jobs:
         uses: dtolnay/rust-toolchain@clippy
 
       - name: Lint
-        run: cargo clippy --all-features --all-targets
+        run: cargo clippy --all-features --tests -- -Dclippy::all -Dclippy::pedantic
 
       - name: Test
         run: cargo test --all-features

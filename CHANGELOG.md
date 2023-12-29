@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated deps.
 - Updated CI config.
+- Update + Add documentation.
 - Add addition supported date format `%A %B %e %Y` (e.g. `Sunday, April 18th, 2021`).
 
 ## [0.3.0] - 2021-11-14

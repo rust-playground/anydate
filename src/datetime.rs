@@ -1,9 +1,12 @@
-//! DateTime parsing functions
+//! `DateTime` parsing functions
 use crate::errors::Error;
 use chrono::{DateTime, FixedOffset, NaiveDateTime, NaiveTime, Offset, TimeZone, Utc};
 
-/// Attempts to parse the provided string into a DateTime\<FixedOffset\>.
-/// Also see [`parse_utc`] for a convenience conversion to DateTime\<Utc\>.
+/// Attempts to parse the provided string into a `DateTime`\<`FixedOffset`\>.
+/// Also see [`parse_utc`] for a convenience conversion to `DateTime`\<`Utc`\>.
+///
+/// # Errors
+/// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
 #[inline]
 pub fn parse(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     match s.get(..1) {
@@ -18,8 +21,11 @@ pub fn parse(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     }
 }
 
-/// Attempts to parse the provided string into a DateTime\<FixedOffset\> but convert it to a
-/// DateTime\<Utc\> prior to returning automatically.
+/// Attempts to parse the provided string into a `DateTime`\<`FixedOffset`\> but convert it to a
+/// `DateTime`\<Utc\> prior to returning automatically.
+///
+/// # Errors
+/// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
 #[inline]
 pub fn parse_utc(s: &str) -> Result<DateTime<Utc>, Error> {
     let fdt = parse(s)?;
@@ -245,6 +251,7 @@ fn parse_timezone_abbreviation_prefix_alpha(s: &str) -> Result<DateTime<FixedOff
     )
 }
 
+#[allow(clippy::too_many_lines)]
 fn parse_offset(tz: &str) -> Result<FixedOffset, Error> {
     let offset = match tz.to_uppercase().as_str() {
         "GMT" | "IBST" | "WET" | "Z" | "EGST" => Utc.fix(),
@@ -350,6 +357,7 @@ fn parse_offset(tz: &str) -> Result<FixedOffset, Error> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unreadable_literal)]
 mod tests {
     use super::*;
 

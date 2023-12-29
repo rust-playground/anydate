@@ -43,6 +43,9 @@ pub mod deserialize {
     use super::*;
 
     /// deserializes to a [`DateTime<FixedOffset>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate<'de, D>(d: D) -> Result<DateTime<FixedOffset>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -51,6 +54,9 @@ pub mod deserialize {
     }
 
     /// deserializes to a [`Option<DateTime<FixedOffset>>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate_option<'de, D>(d: D) -> Result<Option<DateTime<FixedOffset>>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -60,6 +66,9 @@ pub mod deserialize {
     }
 
     /// deserializes to a [`DateTime<Utc>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate_utc<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -68,6 +77,9 @@ pub mod deserialize {
     }
 
     /// deserializes to a [`Option<DateTime<Utc>>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate_utc_option<'de, D>(d: D) -> Result<Option<DateTime<Utc>>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -77,6 +89,7 @@ pub mod deserialize {
     }
 
     #[cfg(test)]
+    #[allow(clippy::unreadable_literal)]
     mod tests {
         use super::*;
         use serde::Deserialize;
