@@ -161,7 +161,7 @@ fn parse_utc_naive_datetime_unknown_alpha(s: &str) -> Result<DateTime<FixedOffse
 
 fn parse_utc_naive_datetime_alpha_prefix(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     // DateTimes without timezone info
-    const PARSE_FORMATS: &[&str] = &["%a %b %e %T %Y"];
+    const PARSE_FORMATS: &[&str] = &["%A %B %e %T %Y"];
     parse_utc_naive_datetime(s, PARSE_FORMATS)
 }
 
@@ -458,6 +458,7 @@ mod tests {
             ("Tuesday, September 15th, 2020", 1600128000000000000),
             ("Monday, April 6th, 2020", 1586131200000000000),
             ("Friday, March 13th, 2020", 1584057600000000000),
+            ("Thursday, May 16th, 2019", 1557964800000000000),
             // dd Mon yyyy hh:mm:ss
             ("12 Feb 2006, 19:17", 1139771820000000000),
             ("12 Feb 2006 19:17", 1139771820000000000),

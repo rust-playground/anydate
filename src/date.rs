@@ -49,11 +49,8 @@ fn parse_naive_dates(s: &str) -> Result<NaiveDate, Error> {
 
 fn parse_naive_dates_replace(s: &str) -> Result<NaiveDate, Error> {
     // Date parse formats
-    const PARSE_FORMATS: &[&str] = &["%B %d %y", "%B %d %Y", "%A %B %e %Y"];
-    let s = s
-        .replace([',', '.'], "")
-        .replace("th", "")
-        .replace("st", "");
+    const PARSE_FORMATS: &[&str] = &["%B %d %y", "%B %d %Y", "%A %B %eth %Y", "%A %B %est %Y"];
+    let s = s.replace([',', '.'], "");
     PARSE_FORMATS
         .iter()
         .map(|fmt| NaiveDate::parse_from_str(&s, fmt))
