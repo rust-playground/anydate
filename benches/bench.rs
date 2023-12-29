@@ -5,7 +5,7 @@ use criterion::Criterion;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("datetime");
-    for (name, input) in [
+    for (name, input) in &[
         ("rfc3339_nano", "2021-11-08T00:54:37.059879000Z"),
         ("rfc2822", "Mon, 08 Nov 2021 00:35:18 +0000"),
         ("yyyy-mm-dd hh:mm:ss", "2012-08-03 18:31:59.257000000"),
@@ -29,13 +29,11 @@ fn criterion_benchmark(c: &mut Criterion) {
         ("chinese yyyy mm dd hh mm ss", "2014年04月08日11时25分18秒"),
         ("chinese yyyy mm dd", "2014年04月08日"),
         ("timezone_abbrev", "2017-11-25 13:31:15 PST"),
-    ]
-    .iter()
-    {
+    ] {
         group.bench_function(*name, |b| {
             b.iter(|| {
                 let _res = anydate::parse_utc(input);
-            })
+            });
         });
     }
     group.finish();
