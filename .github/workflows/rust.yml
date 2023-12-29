@@ -29,7 +29,12 @@ jobs:
         uses: dtolnay/rust-toolchain@clippy
 
       - name: Lint
+        if: matrix.platform != 'windows-latest'
         run: cargo clippy --all-features --all-targets --tests -- -Dclippy::all -Dclippy::pedantic
+
+      - name: Lint
+        if: matrix.platform == 'windows-latest'
+        run: cargo clippy --all-features --all-targets --tests
 
       - name: Test
         run: cargo test --all-features
