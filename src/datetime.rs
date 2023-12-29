@@ -1,9 +1,12 @@
-//! DateTime parsing functions
+//! `DateTime` parsing functions
 use crate::errors::Error;
 use chrono::{DateTime, FixedOffset, NaiveDateTime, NaiveTime, Offset, TimeZone, Utc};
 
-/// Attempts to parse the provided string into a DateTime\<FixedOffset\>.
-/// Also see [`parse_utc`] for a convenience conversion to DateTime\<Utc\>.
+/// Attempts to parse the provided string into a `DateTime`\<`FixedOffset`\>.
+/// Also see [`parse_utc`] for a convenience conversion to `DateTime`\<`Utc`\>.
+///
+/// # Errors
+/// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
 #[inline]
 pub fn parse(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     match s.get(..1) {
@@ -18,8 +21,11 @@ pub fn parse(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     }
 }
 
-/// Attempts to parse the provided string into a DateTime\<FixedOffset\> but convert it to a
-/// DateTime\<Utc\> prior to returning automatically.
+/// Attempts to parse the provided string into a `DateTime`\<`FixedOffset`\> but convert it to a
+/// `DateTime`\<Utc\> prior to returning automatically.
+///
+/// # Errors
+/// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
 #[inline]
 pub fn parse_utc(s: &str) -> Result<DateTime<Utc>, Error> {
     let fdt = parse(s)?;
@@ -36,7 +42,10 @@ fn parse_unknown_alpha(s: &str) -> Result<DateTime<FixedOffset>, Error> {
         .or_else(|_| parse_utc_naive_datetime_replace_str_unknown_alpha(s))
         .or_else(|_| {
             let dt = crate::date::parse_unknown_alpha(s).map_err(|_| Error::InvalidDateTime)?;
-            let ndt = NaiveDateTime::new(dt, NaiveTime::from_num_seconds_from_midnight(0, 0));
+            let ndt = NaiveDateTime::new(
+                dt,
+                NaiveTime::from_num_seconds_from_midnight_opt(0, 0).unwrap_or_default(),
+            );
             Ok(Utc.fix().from_utc_datetime(&ndt))
         })
         .or_else(|_: Error| parse_timezone_abbreviation_unknown_alpha(s))
@@ -48,9 +57,11 @@ fn parse_with_alpha(s: &str) -> Result<DateTime<FixedOffset>, Error> {
         .or_else(|_| parse_utc_naive_datetime_alpha_prefix(s))
         .or_else(|_| parse_utc_naive_datetime_replace_str_prefix_alpha(s))
         .or_else(|_| {
-            let dt = crate::date::parse_with_alpha(s).map_err(|_| Error::InvalidDateTime)?;
-            let ndt = NaiveDateTime::new(dt, NaiveTime::from_num_seconds_from_midnight(0, 0));
-            Ok(Utc.fix().from_utc_datetime(&ndt))
+            let dt = crate::date::parse_with_alpha(s)
+                .map_err(|_| Error::InvalidDateTime)?
+                .and_time(NaiveTime::default())
+                .and_utc();
+            Ok(dt.fixed_offset())
         })
         .or_else(|_: Error| parse_timezone_abbreviation_prefix_alpha(s))
 }
@@ -60,7 +71,7 @@ fn parse_unix_timestamp(s: &str) -> Result<DateTime<FixedOffset>, Error> {
         // unix timestamp - seconds
         match s.parse::<i64>() {
             Ok(u) => {
-                let utc = Utc.timestamp(u, 0);
+                let utc = Utc.timestamp_opt(u, 0).unwrap();
                 Ok(DateTime::from(utc))
             }
             Err(_) => Err(Error::InvalidDateTime),
@@ -156,7 +167,7 @@ fn parse_utc_naive_datetime_unknown_alpha(s: &str) -> Result<DateTime<FixedOffse
 
 fn parse_utc_naive_datetime_alpha_prefix(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     // DateTimes without timezone info
-    const PARSE_FORMATS: &[&str] = &["%a %b %e %T %Y"];
+    const PARSE_FORMATS: &[&str] = &["%A %B %e %T %Y"];
     parse_utc_naive_datetime(s, PARSE_FORMATS)
 }
 
@@ -171,7 +182,7 @@ fn parse_utc_naive_datetime_replace_str_unknown_alpha(
         "%d %B %Y %I:%M:%S %P",
         "%d %B %Y %I:%M %P",
     ];
-    let s = s.replace(", ", " ");
+    let s = s.replace(',', "");
     parse_utc_naive_datetime(&s, PARSE_FORMATS)
 }
 
@@ -185,16 +196,19 @@ fn parse_utc_naive_datetime_replace_str_prefix_alpha(
         "%B %d %Y %I:%M:%S %P",
         "%B %d %Y %I:%M %P",
     ];
-    let s = s.replace(", ", " ");
+    let s = s.replace(',', "");
     parse_utc_naive_datetime(&s, PARSE_FORMATS)
 }
 
 fn parse_utc_naive_datetime(s: &str, formats: &[&str]) -> Result<DateTime<FixedOffset>, Error> {
     formats
         .iter()
-        .map(|fmt| Utc.datetime_from_str(s, fmt))
+        .map(|fmt| NaiveDateTime::parse_from_str(s, fmt))
         .find_map(Result::ok)
-        .map_or_else(|| Err(Error::InvalidDateTime), |dt| Ok(DateTime::from(dt)))
+        .map_or_else(
+            || Err(Error::InvalidDateTime),
+            |dt| Ok(DateTime::from(dt.and_utc())),
+        )
 }
 
 // last ditch effort, timezone abbreviation can't 100% relied upon.
@@ -237,39 +251,54 @@ fn parse_timezone_abbreviation_prefix_alpha(s: &str) -> Result<DateTime<FixedOff
     )
 }
 
+#[allow(clippy::too_many_lines)]
 fn parse_offset(tz: &str) -> Result<FixedOffset, Error> {
     let offset = match tz.to_uppercase().as_str() {
         "GMT" | "IBST" | "WET" | "Z" | "EGST" => Utc.fix(),
-        "BST" | "CET" | "DFT" | "IST" | "MET" | "WAT" | "WEDT" | "WEST" => FixedOffset::east(3600),
+        "BST" | "CET" | "DFT" | "IST" | "MET" | "WAT" | "WEDT" | "WEST" => {
+            FixedOffset::east_opt(3600).unwrap_or(Utc.fix())
+        }
         "CAT" | "CEDT" | "CEST" | "EET" | "HAEC" | "IST Israel" | "MEST" | "SAST" | "USZ1"
-        | "WAST" | "AST Arabia" | "EAT" => FixedOffset::east(2 * 3600),
-        "EEDT" | "EEST" | "FET" | "IDT" | "IOT" | "MSK" | "SYOT" => FixedOffset::east(3 * 3600),
-        "IRST" => FixedOffset::east(3 * 3600 + 1800),
+        | "WAST" | "AST Arabia" | "EAT" => FixedOffset::east_opt(2 * 3600).unwrap_or(Utc.fix()),
+        "EEDT" | "EEST" | "FET" | "IDT" | "IOT" | "MSK" | "SYOT" => {
+            FixedOffset::east_opt(3 * 3600).unwrap_or(Utc.fix())
+        }
+        "IRST" => FixedOffset::east_opt(3 * 3600 + 1800).unwrap_or(Utc.fix()),
         "AMT Armenia" | "AZT" | "GET" | "GST Gulf" | "MUT" | "RET" | "SAMT" | "SCT" | "VOLT" => {
-            FixedOffset::east(4 * 3600)
+            FixedOffset::east_opt(4 * 3600).unwrap_or(Utc.fix())
         }
-        "AFT" | "IRDT" => FixedOffset::east(4 * 3600 + 1800),
+        "AFT" | "IRDT" => FixedOffset::east_opt(4 * 3600 + 1800).unwrap_or(Utc.fix()),
         "HMT" | "MAWT" | "MVT" | "ORAT" | "PKT" | "TFT" | "TJT" | "TMT" | "UZT" | "YEKT" => {
-            FixedOffset::east(5 * 3600)
+            FixedOffset::east_opt(5 * 3600).unwrap_or(Utc.fix())
         }
-        "IST Indian" | "SLST" => FixedOffset::east(5 * 3600 + 1800),
-        "NPT" => FixedOffset::east(5 * 3600 + 2700),
+        "IST Indian" | "SLST" => FixedOffset::east_opt(5 * 3600 + 1800).unwrap_or(Utc.fix()),
+        "NPT" => FixedOffset::east_opt(5 * 3600 + 2700).unwrap_or(Utc.fix()),
         "BDT Bangladesh" | "BIOT" | "BST Bangladesh" | "BTT" | "KGT" | "OMST" | "VOST" => {
-            FixedOffset::east(6 * 3600)
+            FixedOffset::east_opt(6 * 3600).unwrap_or(Utc.fix())
         }
-        "CCT" | "MMT" | "MST Myanmar" => FixedOffset::east(6 * 3600 + 1800),
-        "CXT" | "DAVT" | "HOVT" | "ICT" | "KRAT" | "THA" | "WIT" => FixedOffset::east(7 * 3600),
+        "CCT" | "MMT" | "MST Myanmar" => {
+            FixedOffset::east_opt(6 * 3600 + 1800).unwrap_or(Utc.fix())
+        }
+        "CXT" | "DAVT" | "HOVT" | "ICT" | "KRAT" | "THA" | "WIT" => {
+            FixedOffset::east_opt(7 * 3600).unwrap_or(Utc.fix())
+        }
         "ACT" | "AWST" | "BDT" | "CHOT" | "CIT" | "CST China" | "CT" | "HKT" | "IRKT"
         | "MST Malaysia" | "MYT" | "PST Philippine" | "SGT" | "SST" | "ULAT" | "WST" => {
-            FixedOffset::east(8 * 3600)
+            FixedOffset::east_opt(8 * 3600).unwrap_or(Utc.fix())
         }
-        "CWST" => FixedOffset::east(8 * 3600 + 2700),
-        "AWDT" | "EIT" | "JST" | "KST" | "TLT" | "YAKT" => FixedOffset::east(9 * 3600),
-        "ACST" | "CST Australia Central" => FixedOffset::east(9 * 3600 + 1800),
+        "CWST" => FixedOffset::east_opt(8 * 3600 + 2700).unwrap_or(Utc.fix()),
+        "AWDT" | "EIT" | "JST" | "KST" | "TLT" | "YAKT" => {
+            FixedOffset::east_opt(9 * 3600).unwrap_or(Utc.fix())
+        }
+        "ACST" | "CST Australia Central" => {
+            FixedOffset::east_opt(9 * 3600 + 1800).unwrap_or(Utc.fix())
+        }
         "AEST" | "ChST" | "CHUT" | "DDUT" | "EST Australia" | "PGT" | "VLAT" => {
-            FixedOffset::east(10 * 3600)
+            FixedOffset::east_opt(10 * 3600).unwrap_or(Utc.fix())
         }
-        "ACDT" | "CST Australia Central Summer" | "LHST" => FixedOffset::east(10 * 3600 + 1800),
+        "ACDT" | "CST Australia Central Summer" | "LHST" => {
+            FixedOffset::east_opt(10 * 3600 + 1800).unwrap_or(Utc.fix())
+        }
         "AEDT"
         | "BST Bougainville"
         | "KOST"
@@ -281,17 +310,19 @@ fn parse_offset(tz: &str) -> Result<FixedOffset, Error> {
         | "SBT"
         | "SRET"
         | "VUT"
-        | "NFT" => FixedOffset::east(11 * 3600),
+        | "NFT" => FixedOffset::east_opt(11 * 3600).unwrap_or(Utc.fix()),
         "FJT" | "GILT" | "MAGT" | "MHT" | "NZST" | "PETT" | "TVT" | "WAKT" => {
-            FixedOffset::east(12 * 3600)
+            FixedOffset::east_opt(12 * 3600).unwrap_or(Utc.fix())
         }
-        "CHAST" => FixedOffset::east(12 * 3600 + 2700),
-        "NZDT" | "PHOT" | "TKT" | "TOT" => FixedOffset::east(13 * 3600),
-        "CHADT" => FixedOffset::east(13 * 3600 + 2700),
-        "LINT" => FixedOffset::east(14 * 3600),
-        "AZOST" | "CVT" | "EGT" => FixedOffset::west(3600),
-        "BRST" | "FNT" | "GST" | "PMDT" | "UYST" => FixedOffset::west(2 * 3600),
-        "NDT" => FixedOffset::west(2 * 3600 + 1800),
+        "CHAST" => FixedOffset::east_opt(12 * 3600 + 2700).unwrap_or(Utc.fix()),
+        "NZDT" | "PHOT" | "TKT" | "TOT" => FixedOffset::east_opt(13 * 3600).unwrap_or(Utc.fix()),
+        "CHADT" => FixedOffset::east_opt(13 * 3600 + 2700).unwrap_or(Utc.fix()),
+        "LINT" => FixedOffset::east_opt(14 * 3600).unwrap_or(Utc.fix()),
+        "AZOST" | "CVT" | "EGT" => FixedOffset::west_opt(3600).unwrap_or(Utc.fix()),
+        "BRST" | "FNT" | "GST" | "PMDT" | "UYST" => {
+            FixedOffset::west_opt(2 * 3600).unwrap_or(Utc.fix())
+        }
+        "NDT" => FixedOffset::west_opt(2 * 3600 + 1800).unwrap_or(Utc.fix()),
         "ADT"
         | "AMST"
         | "ART"
@@ -304,28 +335,29 @@ fn parse_offset(tz: &str) -> Result<FixedOffset, Error> {
         | "PYST"
         | "ROTT"
         | "SRT"
-        | "UYT" => FixedOffset::west(3 * 3600),
-        "NST" | "NT" => FixedOffset::west(3 * 3600 + 1800),
+        | "UYT" => FixedOffset::west_opt(3 * 3600).unwrap_or(Utc.fix()),
+        "NST" | "NT" => FixedOffset::west_opt(3 * 3600 + 1800).unwrap_or(Utc.fix()),
         "AMT" | "AST" | "BOT" | "CDT Cuba" | "CLT" | "COST" | "ECT" | "EDT" | "FKT" | "GYT"
-        | "PYT" => FixedOffset::west(4 * 3600),
-        "VET" => FixedOffset::west(4 * 3600 + 1800),
+        | "PYT" => FixedOffset::west_opt(4 * 3600).unwrap_or(Utc.fix()),
+        "VET" => FixedOffset::west_opt(4 * 3600 + 1800).unwrap_or(Utc.fix()),
         "ACT Acre" | "CDT" | "COT" | "CST Cuba" | "EASST" | "ECT Ecuador" | "EST" | "PET" => {
-            FixedOffset::west(5 * 3600)
+            FixedOffset::west_opt(5 * 3600).unwrap_or(Utc.fix())
         }
-        "CST" | "EAST" | "GALT" | "MDT" => FixedOffset::west(6 * 3600),
-        "MST" | "PDT" => FixedOffset::west(7 * 3600),
-        "AKDT" | "CIST" | "PST" => FixedOffset::west(8 * 3600),
-        "AKST" | "GAMT" | "GIT" | "HADT" => FixedOffset::west(9 * 3600),
-        "MART" | "MIT" => FixedOffset::west(9 * 3600 + 1800),
-        "CKT" | "HAST" | "HST" | "TAHT" => FixedOffset::west(10 * 3600),
-        "NUT" | "SST Samoa" => FixedOffset::west(11 * 3600),
-        "BIT" => FixedOffset::west(12 * 3600),
+        "CST" | "EAST" | "GALT" | "MDT" => FixedOffset::west_opt(6 * 3600).unwrap_or(Utc.fix()),
+        "MST" | "PDT" => FixedOffset::west_opt(7 * 3600).unwrap_or(Utc.fix()),
+        "AKDT" | "CIST" | "PST" => FixedOffset::west_opt(8 * 3600).unwrap_or(Utc.fix()),
+        "AKST" | "GAMT" | "GIT" | "HADT" => FixedOffset::west_opt(9 * 3600).unwrap_or(Utc.fix()),
+        "MART" | "MIT" => FixedOffset::west_opt(9 * 3600 + 1800).unwrap_or(Utc.fix()),
+        "CKT" | "HAST" | "HST" | "TAHT" => FixedOffset::west_opt(10 * 3600).unwrap_or(Utc.fix()),
+        "NUT" | "SST Samoa" => FixedOffset::west_opt(11 * 3600).unwrap_or(Utc.fix()),
+        "BIT" => FixedOffset::west_opt(12 * 3600).unwrap_or(Utc.fix()),
         _ => return Err(Error::InvalidDateTime),
     };
     Ok(offset)
 }
 
 #[cfg(test)]
+#[allow(clippy::unreadable_literal)]
 mod tests {
     use super::*;
 
@@ -338,11 +370,16 @@ mod tests {
         );
         assert_eq!(
             1636331272246000,
-            parse_utc("1636331272246000")?.timestamp_nanos() / 1_000
+            parse_utc("1636331272246000")?
+                .timestamp_nanos_opt()
+                .unwrap()
+                / 1_000
         );
         assert_eq!(
             1636331290175019000,
-            parse_utc("1636331290175019000")?.timestamp_nanos()
+            parse_utc("1636331290175019000")?
+                .timestamp_nanos_opt()
+                .unwrap()
         );
         Ok(())
     }
@@ -351,11 +388,16 @@ mod tests {
     fn rfc3339() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
             1636331565426737000,
-            parse_utc("2021-11-08T00:32:45.426737000Z")?.timestamp_nanos()
+            parse_utc("2021-11-08T00:32:45.426737000Z")?
+                .timestamp_nanos_opt()
+                .unwrap()
         );
         assert_eq!(
             1636331565426737,
-            parse_utc("2021-11-08T00:32:45.426737Z")?.timestamp_nanos() / 1_000
+            parse_utc("2021-11-08T00:32:45.426737Z")?
+                .timestamp_nanos_opt()
+                .unwrap()
+                / 1_000
         );
         assert_eq!(
             1636331565426,
@@ -369,7 +411,9 @@ mod tests {
     fn rfc2822() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
             1636331718000000000,
-            parse_utc("Mon, 08 Nov 2021 00:35:18 +0000")?.timestamp_nanos()
+            parse_utc("Mon, 08 Nov 2021 00:35:18 +0000")?
+                .timestamp_nanos_opt()
+                .unwrap()
         );
         Ok(())
     }
@@ -416,6 +460,16 @@ mod tests {
             ("oct. 7, 1970", 24105600000000000),
             ("oct. 7, 70", 24105600000000000),
             ("October 7, 1970", 24105600000000000),
+            // Sunday, April 18th, 2021
+            ("Monday, January 1st, 2024", 1704067200000000000),
+            ("Tuesday, January 2nd, 2024", 1704153600000000000),
+            ("Wednesday, January 3rd, 2024", 1704240000000000000),
+            ("Sunday, April 18th, 2021", 1618704000000000000),
+            ("Friday, January 8th, 2021", 1610064000000000000),
+            ("Tuesday, September 15th, 2020", 1600128000000000000),
+            ("Monday, April 6th, 2020", 1586131200000000000),
+            ("Friday, March 13th, 2020", 1584057600000000000),
+            ("Thursday, May 16th, 2019", 1557964800000000000),
             // dd Mon yyyy hh:mm:ss
             ("12 Feb 2006, 19:17", 1139771820000000000),
             ("12 Feb 2006 19:17", 1139771820000000000),
@@ -470,7 +524,7 @@ mod tests {
             ("2014-12-16 06:20:00 GMT", 1418710800000000000),
             ("May 26, 2021, 12:49 AM PDT", 1622015340000000000),
         ] {
-            assert_eq!(*expected, parse_utc(input)?.timestamp_nanos());
+            assert_eq!(*expected, parse_utc(input)?.timestamp_nanos_opt().unwrap());
         }
         Ok(())
     }

@@ -40,9 +40,12 @@ pub mod deserialize {
     //! println!("{:?}", dt);
     //!
     //! ```
-    use super::*;
+    use super::{de, AnydateVisitor, DateTime, FixedOffset, Utc};
 
     /// deserializes to a [`DateTime<FixedOffset>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate<'de, D>(d: D) -> Result<DateTime<FixedOffset>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -51,15 +54,20 @@ pub mod deserialize {
     }
 
     /// deserializes to a [`Option<DateTime<FixedOffset>>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate_option<'de, D>(d: D) -> Result<Option<DateTime<FixedOffset>>, D::Error>
     where
         D: de::Deserializer<'de>,
     {
-        Ok(d.deserialize_str(AnydateVisitor)
-            .map_or_else(|_| None, Some))
+        Ok(d.deserialize_str(AnydateVisitor).ok())
     }
 
     /// deserializes to a [`DateTime<Utc>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate_utc<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -68,6 +76,9 @@ pub mod deserialize {
     }
 
     /// deserializes to a [`Option<DateTime<Utc>>`]
+    ///
+    /// # Errors
+    /// Will return `Err` when an invalid or unsupported `DateTime` format is provided.
     pub fn anydate_utc_option<'de, D>(d: D) -> Result<Option<DateTime<Utc>>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -77,6 +88,7 @@ pub mod deserialize {
     }
 
     #[cfg(test)]
+    #[allow(clippy::unreadable_literal)]
     mod tests {
         use super::*;
         use serde::Deserialize;
@@ -98,7 +110,7 @@ pub mod deserialize {
                 ),
             ] {
                 let s: Test = serde_json::from_value(input)?;
-                assert_eq!(s.dt.timestamp_nanos(), expected);
+                assert_eq!(s.dt.timestamp_nanos_opt().unwrap(), expected);
             }
             Ok(())
         }
@@ -126,7 +138,7 @@ pub mod deserialize {
                 let s: Test = serde_json::from_value(input)?;
                 match expected {
                     Some(num) => {
-                        assert_eq!(s.dt.unwrap().timestamp_nanos(), num);
+                        assert_eq!(s.dt.unwrap().timestamp_nanos_opt().unwrap(), num);
                     }
                     None => {
                         assert_eq!(s.dt, None);
@@ -152,7 +164,7 @@ pub mod deserialize {
                 ),
             ] {
                 let s: Test = serde_json::from_value(input)?;
-                assert_eq!(s.dt.timestamp_nanos(), expected);
+                assert_eq!(s.dt.timestamp_nanos_opt().unwrap(), expected);
             }
             Ok(())
         }
@@ -180,7 +192,7 @@ pub mod deserialize {
                 let s: Test = serde_json::from_value(input)?;
                 match expected {
                     Some(num) => {
-                        assert_eq!(s.dt.unwrap().timestamp_nanos(), num);
+                        assert_eq!(s.dt.unwrap().timestamp_nanos_opt().unwrap(), num);
                     }
                     None => {
                         assert_eq!(s.dt, None);

@@ -13,7 +13,7 @@ the [`CHANGELOG.md`](https://github.com/rust-playground/anydate/blob/main/CHANGE
 ## Usage
 ```toml
 [dependencies]
-anydate = "0.1"
+anydate = "0.4"
 ```
 
 ### Features

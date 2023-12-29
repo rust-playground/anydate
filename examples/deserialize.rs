@@ -11,5 +11,5 @@ struct Test {
 
 fn main() {
     let dt: Test = serde_json::from_value(json!({"dt":"2021-11-14"})).unwrap();
-    println!("{:?}", dt);
+    println!("{dt:?}");
 }
