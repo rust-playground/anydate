@@ -40,7 +40,7 @@ pub mod deserialize {
     //! println!("{:?}", dt);
     //!
     //! ```
-    use super::{de, AnydateVisitor, DateTime, FixedOffset, Utc};
+    use super::{AnydateVisitor, DateTime, FixedOffset, Utc, de};
 
     /// deserializes to a [`DateTime<FixedOffset>`]
     ///
@@ -143,7 +143,7 @@ pub mod deserialize {
                     None => {
                         assert_eq!(s.dt, None);
                     }
-                };
+                }
             }
             Ok(())
         }
@@ -197,7 +197,7 @@ pub mod deserialize {
                     None => {
                         assert_eq!(s.dt, None);
                     }
-                };
+                }
             }
             Ok(())
         }
