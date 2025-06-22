@@ -1,6 +1,7 @@
 # anydate &emsp; [![Latest Version]][crates.io]
 
 [Latest Version]: https://img.shields.io/crates/v/anydate.svg
+
 [crates.io]: https://crates.io/crates/anydate
 
 This crate is used to parse an unknown DateTime or Date format into a normalized version.
@@ -11,9 +12,10 @@ Any significant changes to anydate are documented in
 the [`CHANGELOG.md`](https://github.com/rust-playground/anydate/blob/main/CHANGELOG.md) file.
 
 ## Usage
+
 ```toml
 [dependencies]
-anydate = "0.4"
+anydate = "0.5"
 ```
 
 ### Features
@@ -25,6 +27,7 @@ Optional features:
 [`serde`]: https://github.com/serde-rs/serde
 
 ### Example usages
+
 ```rust
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // see parse_utc() for convenience conversion to UTC

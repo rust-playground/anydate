@@ -30,20 +30,33 @@ pub(crate) fn parse_with_alpha(s: &str) -> Result<NaiveDate, Error> {
 
 fn parse_naive_dates(s: &str) -> Result<NaiveDate, Error> {
     // Date parse formats
-    const PARSE_FORMATS: &[&str] = &[
-        "%Y-%m-%d",
-        "%Y/%m/%d",
-        "%Y.%m.%d",
-        "%m/%d/%y",
-        "%m/%d/%Y",
-        "%m.%d.%y",
-        "%m.%d.%Y",
-        "%Y-%b-%d",
-        "%d %B %y",
-        "%d %B %Y",
-        "%Y年%m月%d日",
-    ];
-    PARSE_FORMATS
+    const PARSE_FORMATS_DASHES: &[&str] = &["%Y-%m-%d", "%Y-%b-%d"];
+
+    const PARSE_FORMATS_SLASHES: &[&str] = &["%Y/%m/%d", "%m/%d/%y", "%m/%d/%Y"];
+
+    const PARSE_FORMATS_DOT: &[&str] = &["%Y.%m.%d", "%m.%d.%y", "%m.%d.%Y"];
+
+    const PARSE_FORMATS_SPACE: &[&str] = &["%d %B %y", "%d %B %Y"];
+
+    const PARSE_FORMATS_REMAINING: &[&str] = &["%Y年%m月%d日"];
+
+    for c in s.chars() {
+        if !c.is_alphanumeric() {
+            return match c {
+                '-' => PARSE_FORMATS_DASHES,
+                '/' => PARSE_FORMATS_SLASHES,
+                '.' => PARSE_FORMATS_DOT,
+                ' ' => PARSE_FORMATS_SPACE,
+                _ => break,
+            }
+            .iter()
+            .map(|fmt| NaiveDate::parse_from_str(s, fmt))
+            .find_map(Result::ok)
+            .map_or_else(|| Err(Error::InvalidDate), Ok);
+        }
+    }
+
+    PARSE_FORMATS_REMAINING
         .iter()
         .map(|fmt| NaiveDate::parse_from_str(s, fmt))
         .find_map(Result::ok)
@@ -114,6 +127,7 @@ mod tests {
                 *expected,
                 parse(input)?
                     .and_time(NaiveTime::from_num_seconds_from_midnight_opt(0, 0).unwrap())
+                    .and_utc()
                     .timestamp_nanos_opt()
                     .unwrap()
             );
