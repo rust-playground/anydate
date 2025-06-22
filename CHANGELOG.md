@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated deps.
 - Updated CI config.
 - Updated documentation.
+- Updated to Rust 2024 edition.
 - Optimized parsing performance for unknown alpha paths by pre-looking date part lookup prior to parsing.
 
 ## [0.4.0] - 2023-12-29
