@@ -5,7 +5,7 @@ use serde::de;
 
 struct AnydateVisitor;
 
-impl<'de> de::Visitor<'de> for AnydateVisitor {
+impl de::Visitor<'_> for AnydateVisitor {
     type Value = DateTime<FixedOffset>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

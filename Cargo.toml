@@ -1,8 +1,8 @@
 [package]
 name = "anydate"
 description = "Date & DateTime string parser"
-version = "0.4.0"
-edition = "2021"
+version = "0.5.0"
+edition = "2024"
 authors = ["Dean Karn <dean.karn@gmail.com>"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -19,12 +19,12 @@ harness = false
 name = "bench"
 
 [dependencies]
-chrono = { version = "0.4.31", default-features = false, features = ["std"] }
-serde = {version = "1.0.192", features = ["derive"], optional = true }
-thiserror = "1.0.50"
+chrono = { version = "0.4.40", default-features = false, features = ["std"] }
+serde = { version = "1.0.218", features = ["derive"], optional = true }
+thiserror = "2.0.11"
 
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = { version = "0.6.0", features = ["html_reports"] }
 serde_json = "1.0.108"
 
 [lib]

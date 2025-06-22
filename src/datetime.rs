@@ -138,31 +138,48 @@ fn parse_naive_datetime(s: &str) -> Result<DateTime<FixedOffset>, Error> {
 
 fn parse_utc_naive_datetime_unknown_alpha(s: &str) -> Result<DateTime<FixedOffset>, Error> {
     // DateTimes without timezone info
-    const PARSE_FORMATS: &[&str] = &[
+    const PARSE_FORMATS_DASHES: &[&str] = &[
         "%Y-%m-%d %H:%M:%S%.f",
         "%Y-%m-%d %H:%M:%S",
         "%Y-%m-%d %H:%M",
+        "%Y-%m-%d %I:%M:%S %P",
+        "%Y-%m-%d %I:%M %P",
+    ];
+
+    const PARSE_FORMATS_SLASHES: &[&str] = &[
         "%m/%d/%y %H:%M:%S",
         "%m/%d/%y %H:%M",
         "%m/%d/%y %H:%M:%S%.f",
         "%m/%d/%Y %H:%M:%S",
         "%m/%d/%Y %H:%M",
         "%m/%d/%Y %H:%M:%S%.f",
-        "%y%m%d %H:%M:%S",
         "%Y/%m/%d %H:%M:%S",
         "%Y/%m/%d %H:%M",
         "%Y/%m/%d %H:%M:%S%.f",
-        "%Y-%m-%d %I:%M:%S %P",
-        "%Y-%m-%d %I:%M %P",
         "%m/%d/%y %I:%M:%S %P",
         "%m/%d/%y %I:%M %P",
         "%m/%d/%Y %I:%M:%S %P",
         "%m/%d/%Y %I:%M %P",
         "%Y/%m/%d %I:%M:%S %P",
         "%Y/%m/%d %I:%M %P",
-        "%Y年%m月%d日%H时%M分%S秒",
     ];
-    parse_utc_naive_datetime(s, PARSE_FORMATS)
+
+    const PARSE_FORMATS_REMAINING: &[&str] = &["%y%m%d %H:%M:%S", "%Y年%m月%d日%H时%M分%S秒"];
+
+    for c in s.chars() {
+        if !c.is_alphanumeric() {
+            return parse_utc_naive_datetime(
+                s,
+                match c {
+                    '-' => PARSE_FORMATS_DASHES,
+                    '/' => PARSE_FORMATS_SLASHES,
+                    _ => break,
+                },
+            );
+        }
+    }
+
+    parse_utc_naive_datetime(s, PARSE_FORMATS_REMAINING)
 }
 
 fn parse_utc_naive_datetime_alpha_prefix(s: &str) -> Result<DateTime<FixedOffset>, Error> {
@@ -211,9 +228,9 @@ fn parse_utc_naive_datetime(s: &str, formats: &[&str]) -> Result<DateTime<FixedO
         )
 }
 
-// last ditch effort, timezone abbreviation can't 100% relied upon.
+// last ditch effort, timezone abbreviation can't 100% be relied upon.
 //
-// It is not possible to reliably convert from an abbreviation to an offset, for example CDT can
+// It is not possible to reliably convert from an abbreviation to an offset; for example, CDT can
 // mean either Central Daylight Time (North America) or China Daylight Time.
 //
 // list sourced from https://www.utctime.net/time-zone-abbreviations
@@ -231,9 +248,9 @@ fn parse_timezone_abbreviation_unknown_alpha(s: &str) -> Result<DateTime<FixedOf
     )
 }
 
-// last ditch effort, timezone abbreviation can't 100% relied upon.
+// last ditch effort, timezone abbreviation can't 100% be relied upon.
 //
-// It is not possible to reliably convert from an abbreviation to an offset, for example CDT can
+// It is not possible to reliably convert from an abbreviation to an offset; for example, CDT can
 // mean either Central Daylight Time (North America) or China Daylight Time.
 //
 // list sourced from https://www.utctime.net/time-zone-abbreviations
